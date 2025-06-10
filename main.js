@@ -100,6 +100,8 @@ function isCompleted(id) {
 function initUI() {
     const inputEl = document.getElementById('todo-item');
     const addBtn = document.getElementById('add-item');
+    const listContainer = document.querySelector('.list-container');
+    const listEl = document.querySelectorAll('.todo-item');
     addBtn.addEventListener('click', () => {
         const text = inputEl.value.trim();
         if (!text) {
@@ -110,6 +112,60 @@ function initUI() {
         inputEl.value = '';
         renderTodos();
     });
+    inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const text = inputEl.value.trim();
+            if (!text) {
+                console.warn("Cannot add empty todo.");
+                return;
+            }
+            addTodo(text);
+            inputEl.value = '';
+            renderTodos();
+        }
+    });
+    listContainer.addEventListener('keydown', (e) => {
+        const target = e.target;
+        if (!target.classList.contains('todo-item'))
+            return;
+        const todoElements = Array.from(document.querySelectorAll('.todo-item'));
+        const index = todoElements.indexOf(target);
+        if (e.key === 'Enter') {
+            // toggle completion
+            const checkbox = target.querySelector('input[type="checkbox"]');
+            checkbox.click();
+        }
+        if (e.key === 'Backspace' || e.key == 'Delete') {
+            // delete todo
+            const deleteBtn = target.querySelector('button');
+            deleteBtn.click();
+        }
+        if (e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            const span = target.querySelector('span');
+            if (!span)
+                return;
+            const newText = prompt("Edit todo:", span.textContent || '');
+            if (newText !== null && newText.trim() != '') {
+                span.textContent = newText.trim();
+                const idAttr = todoElements[index].getAttribute('data-id');
+                if (idAttr)
+                    updateTodoText(Number(idAttr), newText.trim());
+            }
+        }
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (index < todoElements.length - 1) {
+                todoElements[index + 1].focus();
+            }
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (index > 0) {
+                todoElements[index - 1].focus();
+            }
+        }
+    });
 }
 const listContainer = document.querySelector('.list-container');
 function renderTodos() {
@@ -119,6 +175,7 @@ function renderTodos() {
         // Create the outer wrapper
         const todoItem = document.createElement('div');
         todoItem.className = 'todo-item';
+        todoItem.setAttribute('data-id', String(todo.id));
         // Create the checkbox
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -144,6 +201,7 @@ function renderTodos() {
         todoItem.appendChild(checkbox);
         todoItem.appendChild(textSpan);
         todoItem.appendChild(removeBtn);
+        todoItem.tabIndex = 0; // makes div focusable
         // Add to container
         listContainer.appendChild(todoItem);
     }

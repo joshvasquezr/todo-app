@@ -1,0 +1,4 @@
+.todo-item:focus {
+    outline: 2px solid dodgerblue;
+    background-color: #eef;
+}
