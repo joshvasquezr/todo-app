@@ -136,6 +136,7 @@ function initUI() {
         addTodo(text);
         inputEl.value = '';
         renderTodos();
+        inputEl.focus();
     })
 
     inputEl.addEventListener('keydown', (e) => {
@@ -148,6 +149,18 @@ function initUI() {
             addTodo(text);
             inputEl.value = '';
             renderTodos();
+
+            if (!e.shiftKey) {
+                inputEl.focus();
+            }
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const firstItem = document.querySelector('.todo-item') as HTMLElement;
+            if (firstItem) {
+                firstItem.focus();
+            }
         }
     })
 
@@ -160,15 +173,34 @@ function initUI() {
         const index = todoElements.indexOf(target);
 
         if (e.key === 'Enter') {
+            const idAttr = todoElements[index]?.getAttribute('data-id');
+
             // toggle completion
             const checkbox = target.querySelector('input[type="checkbox"]') as HTMLInputElement;
             checkbox.click();
+
         }
 
         if (e.key === 'Backspace' || e.key == 'Delete') {
             // delete todo
             const deleteBtn = target.querySelector('button') as HTMLButtonElement;
-            deleteBtn.click();
+            const idAttr = target.getAttribute('data-id');
+
+            let nextId: number | undefined;
+
+            if (todoElements.length > 1) {
+                const fallbackTarget =
+                    index === 0
+                        ? todoElements[1] // focus the next item that moves into index 0
+                        : todoElements[index - 1]; // focus previous item
+
+                nextId = Number(fallbackTarget.getAttribute('data-id'));
+            }
+
+            if (idAttr) {
+                removeTodo(Number(idAttr));
+                renderTodos(nextId); // focus previous or fallback to undefined
+            }
         }
 
         if (e.key === ' ' || e.key === 'Spacebar') {
@@ -195,16 +227,17 @@ function initUI() {
             e.preventDefault();
             if (index > 0) {
                 todoElements[index - 1].focus();
+            } else {
+                inputEl.focus();
             }
         }
-
     });
 
 }
 
 const listContainer = document.querySelector('.list-container') as HTMLDivElement;
 
-function renderTodos(): void {
+function renderTodos(focusedId?: number): void {
     listContainer.innerHTML = '';
 
     const todos = listTodos();
@@ -221,7 +254,7 @@ function renderTodos(): void {
         checkbox.checked = todo.completed;
         checkbox.addEventListener('change', () => {
             toggleTodo(todo.id);
-            renderTodos();
+            renderTodos(todo.id);
         });
 
         // Create the text span
@@ -248,6 +281,18 @@ function renderTodos(): void {
         // Add to container
         listContainer.appendChild(todoItem);
     }
+
+    if (focusedId) {
+        const toFocus = document.querySelector(`.todo-item[data-id="${focusedId}"]`) as HTMLElement;
+        if (toFocus) toFocus.focus();
+    }
+
+    const inputEl = document.getElementById('todo-item') as HTMLInputElement;
+
+    if (todos.length === 0) {
+        inputEl.focus();
+    }
+
 }
 
 initUI();

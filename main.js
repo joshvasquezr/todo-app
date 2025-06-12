@@ -111,6 +111,7 @@ function initUI() {
         addTodo(text);
         inputEl.value = '';
         renderTodos();
+        inputEl.focus();
     });
     inputEl.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -122,15 +123,27 @@ function initUI() {
             addTodo(text);
             inputEl.value = '';
             renderTodos();
+            if (!e.shiftKey) {
+                inputEl.focus();
+            }
+        }
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const firstItem = document.querySelector('.todo-item');
+            if (firstItem) {
+                firstItem.focus();
+            }
         }
     });
     listContainer.addEventListener('keydown', (e) => {
+        var _a;
         const target = e.target;
         if (!target.classList.contains('todo-item'))
             return;
         const todoElements = Array.from(document.querySelectorAll('.todo-item'));
         const index = todoElements.indexOf(target);
         if (e.key === 'Enter') {
+            const idAttr = (_a = todoElements[index]) === null || _a === void 0 ? void 0 : _a.getAttribute('data-id');
             // toggle completion
             const checkbox = target.querySelector('input[type="checkbox"]');
             checkbox.click();
@@ -138,7 +151,18 @@ function initUI() {
         if (e.key === 'Backspace' || e.key == 'Delete') {
             // delete todo
             const deleteBtn = target.querySelector('button');
-            deleteBtn.click();
+            const idAttr = target.getAttribute('data-id');
+            let nextId;
+            if (todoElements.length > 1) {
+                const fallbackTarget = index === 0
+                    ? todoElements[1] // focus the next item that moves into index 0
+                    : todoElements[index - 1]; // focus previous item
+                nextId = Number(fallbackTarget.getAttribute('data-id'));
+            }
+            if (idAttr) {
+                removeTodo(Number(idAttr));
+                renderTodos(nextId); // focus previous or fallback to undefined
+            }
         }
         if (e.key === ' ' || e.key === 'Spacebar') {
             e.preventDefault();
@@ -164,11 +188,14 @@ function initUI() {
             if (index > 0) {
                 todoElements[index - 1].focus();
             }
+            else {
+                inputEl.focus();
+            }
         }
     });
 }
 const listContainer = document.querySelector('.list-container');
-function renderTodos() {
+function renderTodos(focusedId) {
     listContainer.innerHTML = '';
     const todos = listTodos();
     for (const todo of todos) {
@@ -182,7 +209,7 @@ function renderTodos() {
         checkbox.checked = todo.completed;
         checkbox.addEventListener('change', () => {
             toggleTodo(todo.id);
-            renderTodos();
+            renderTodos(todo.id);
         });
         // Create the text span
         const textSpan = document.createElement('span');
@@ -204,6 +231,15 @@ function renderTodos() {
         todoItem.tabIndex = 0; // makes div focusable
         // Add to container
         listContainer.appendChild(todoItem);
+    }
+    if (focusedId) {
+        const toFocus = document.querySelector(`.todo-item[data-id="${focusedId}"]`);
+        if (toFocus)
+            toFocus.focus();
+    }
+    const inputEl = document.getElementById('todo-item');
+    if (todos.length === 0) {
+        inputEl.focus();
     }
 }
 initUI();
