@@ -9,6 +9,8 @@ const ids: Set<number> = new Set();
 
 // initialize the list array
 let todoMap: Map<number, Todo> = new Map();
+let undoStack: Todo[][] = [];
+let redoStack: Todo[][] = [];
 
 function addTodo(newText: string): void {
     // check for empty entries
@@ -26,6 +28,7 @@ function addTodo(newText: string): void {
     };
 
     todoMap.set(num, newTodo);
+
 }
 
 /**
@@ -36,6 +39,32 @@ function removeTodo(id: number) {
     // access the id number in the map and remove
     todoMap.delete(id);
     ids.delete(id);
+}
+
+function saveState():void {
+    const snapshot = Array.from(todoMap.values()).map(todo => ({...todo }));
+    undoStack.push(snapshot);
+    redoStack = [];
+}
+
+function undo(): void {
+    if (undoStack.length === 0) {
+        console.warn("Nothing to undo");
+        return;
+    }
+
+    const currentSnapshot = Array.from(todoMap.values()).map(todo => ({...todo }));
+    redoStack.push(currentSnapshot);
+
+    const prevSnapshot = undoStack.pop();
+    if (prevSnapshot) {
+        todoMap.clear();
+        for (const todo of prevSnapshot) {
+            todoMap.set(todo.id, {...todo})
+        }
+    }
+
+    renderTodos();
 }
 
 function randomNum(): number {
@@ -271,6 +300,16 @@ function renderTodos(focusedId?: number): void {
             removeTodo(todo.id);
             renderTodos();
         });
+
+        // create the undo button
+        const undoBtn = document.createElement('button');
+        undoBtn.textContent = '↶';
+        undoBtn.addEventListener('click', () => {
+            undo = true;
+            saveState();
+            removeTodo(newestTodo);
+            renderTodos();
+        })
 
         // Assemble the item
         todoItem.appendChild(checkbox);
