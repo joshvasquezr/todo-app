@@ -56,15 +56,14 @@ export class TodoManager {
     }
     completeAll() {
         for (const todo of this.todoMap.values()) {
-            todo.completed = true;
+            this.toggleTodo(todo.id);
         }
     }
     hasTodo(id) {
         return this.todoMap.has(id);
     }
     isCompleted(id) {
-        var _a;
-        return (_a = this.todoMap.get(id)) === null || _a === void 0 ? void 0 : _a.completed;
+        return this.todoMap.get(id)?.completed;
     }
     clearAll() {
         this.todoMap.clear();
@@ -75,12 +74,12 @@ export class TodoManager {
         this.redoStack = [];
     }
     snapshot() {
-        return Array.from(this.todoMap.values()).map(todo => (Object.assign({}, todo)));
+        return Array.from(this.todoMap.values()).map(todo => ({ ...todo }));
     }
     loadSnapshot(snapshot) {
         this.todoMap.clear();
         for (const todo of snapshot) {
-            this.todoMap.set(todo.id, Object.assign({}, todo));
+            this.todoMap.set(todo.id, { ...todo });
         }
     }
 }

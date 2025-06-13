@@ -63,7 +63,7 @@ export class TodoManager {
 
     completeAll(): void {
         for (const todo of this.todoMap.values()) {
-            todo.completed = true;
+            this.toggleTodo(todo.id);
         }
     }
 

@@ -4,6 +4,8 @@ export function initUI(todoManager) {
     const addBtn = document.getElementById('add-item');
     const undoBtn = document.getElementById('undo-btn');
     const redoBtn = document.getElementById('redo-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const completeBtn = document.getElementById('complete-btn');
     const listContainer = document.querySelector('.list-container');
     addBtn.addEventListener('click', () => {
         const text = inputEl.value.trim();
@@ -37,7 +39,6 @@ export function initUI(todoManager) {
         renderTodos(todoManager);
     });
     document.addEventListener('keydown', (e) => {
-        var _a, _b;
         if ((e.key === 'y' && e.ctrlKey)) {
             e.preventDefault();
             todoManager.redo();
@@ -49,8 +50,8 @@ export function initUI(todoManager) {
             renderTodos(todoManager);
         }
         else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            const activeTag = (_a = document.activeElement) === null || _a === void 0 ? void 0 : _a.tagName.toLowerCase();
-            const activeClass = (_b = document.activeElement) === null || _b === void 0 ? void 0 : _b.classList.contains('todo-item');
+            const activeTag = document.activeElement?.tagName.toLowerCase();
+            const activeClass = document.activeElement?.classList.contains('todo-item');
             // If no input is focused and we're not already in a todo item
             if (activeTag !== 'input' &&
                 activeTag !== 'textarea' &&
@@ -67,9 +68,44 @@ export function initUI(todoManager) {
             todoManager.clearAll();
             renderTodos(todoManager);
         }
+        else if (e.key === 'Escape') {
+            const active = document.activeElement;
+            if (active && active !== document.body) {
+                active.blur(); // removes focus from input/button/etc.
+            }
+        }
+        else if (e.key.length === 1 &&
+            (() => {
+                const tag = document.activeElement?.tagName?.toLowerCase();
+                return tag && !['input', 'textarea'].includes(tag);
+            })()) {
+            e.preventDefault(); // 👈 prevent browser's default input behavior
+            inputEl.focus();
+            inputEl.value += e.key;
+            const len = inputEl.value.length;
+            inputEl.setSelectionRange(len, len);
+        }
+        else if (e.key === 'Enter') {
+            const text = inputEl.value.trim();
+            if (!text)
+                return;
+            todoManager.addTodo(text);
+            inputEl.value = '';
+            renderTodos(todoManager);
+            if (!e.shiftKey)
+                inputEl.focus();
+        }
     });
     redoBtn.addEventListener('click', () => {
         todoManager.redo();
+        renderTodos(todoManager);
+    });
+    clearBtn.addEventListener('click', () => {
+        todoManager.clearAll();
+        renderTodos(todoManager);
+    });
+    completeBtn.addEventListener('click', () => {
+        todoManager.completeAll();
         renderTodos(todoManager);
     });
     listContainer.addEventListener('keydown', (e) => {
@@ -80,7 +116,7 @@ export function initUI(todoManager) {
         const index = todoElements.indexOf(target);
         if (e.key === 'Enter') {
             const checkbox = target.querySelector('input[type="checkbox"]');
-            checkbox === null || checkbox === void 0 ? void 0 : checkbox.click();
+            checkbox?.click();
         }
         if (e.key === 'Backspace' || e.key === 'Delete') {
             const idAttr = target.getAttribute('data-id');
@@ -97,7 +133,7 @@ export function initUI(todoManager) {
         if (e.key === ' ' || e.key === 'Spacebar') {
             e.preventDefault();
             const span = target.querySelector('span');
-            const newText = prompt("Edit todo:", (span === null || span === void 0 ? void 0 : span.textContent) || '');
+            const newText = prompt("Edit todo:", span?.textContent || '');
             if (newText && newText.trim() !== '') {
                 const idAttr = todoElements[index].getAttribute('data-id');
                 if (idAttr) {

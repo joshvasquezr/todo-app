@@ -6,6 +6,8 @@ export function initUI(todoManager: TodoManager): void {
     const addBtn = document.getElementById('add-item') as HTMLButtonElement;
     const undoBtn = document.getElementById('undo-btn') as HTMLButtonElement;
     const redoBtn = document.getElementById('redo-btn') as HTMLButtonElement;
+    const clearBtn = document.getElementById('clear-btn') as HTMLButtonElement;
+    const completeBtn = document.getElementById('complete-btn') as HTMLButtonElement;
     const listContainer = document.querySelector('.list-container') as HTMLDivElement;
 
     addBtn.addEventListener('click', () => {
@@ -68,13 +70,49 @@ export function initUI(todoManager: TodoManager): void {
             e.preventDefault();
             todoManager.clearAll();
             renderTodos(todoManager);
+        } else if (e.key === 'Escape') {
+            const active = document.activeElement as HTMLElement;
+
+            if (active && active !== document.body) {
+                active.blur(); // removes focus from input/button/etc.
+            }
+        } else if (
+            e.key.length === 1 &&
+            (() => {
+                const tag = document.activeElement?.tagName?.toLowerCase();
+                return tag && !['input', 'textarea'].includes(tag);
+            })()
+        ) {
+            e.preventDefault(); // 👈 prevent browser's default input behavior
+            inputEl.focus();
+            inputEl.value += e.key;
+
+            const len = inputEl.value.length;
+            inputEl.setSelectionRange(len, len);
+        } else if (e.key === 'Enter') {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            todoManager.addTodo(text);
+            inputEl.value = '';
+            renderTodos(todoManager);
+            if (!e.shiftKey) inputEl.focus();
         }
-    })
+    });
 
     redoBtn.addEventListener('click', () => {
         todoManager.redo();
         renderTodos(todoManager);
     });
+
+    clearBtn.addEventListener('click', () => {
+        todoManager.clearAll();
+        renderTodos(todoManager);
+    });
+
+    completeBtn.addEventListener('click', () => {
+        todoManager.completeAll();
+        renderTodos(todoManager);
+    })
 
     listContainer.addEventListener('keydown', (e) => {
         const target = e.target as HTMLElement;
