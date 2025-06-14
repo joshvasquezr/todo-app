@@ -76,6 +76,8 @@ export class TodoManager {
     }
 
     redo(): void {
+        console.log("Redo stack size:", this.redoStack.length);
+
         if (this.redoStack.length === 0) return ;
 
         this.undoStack.push(this.snapshot());
