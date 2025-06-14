@@ -5,6 +5,23 @@ export class TodoManager {
         this.ids = new Set();
         this.undoStack = [];
         this.redoStack = [];
+        this.loadFromStorage();
+    }
+    saveToStorage() {
+        const todos = this.getTodos();
+        localStorage.setItem('todos', JSON.stringify(todos));
+    }
+    loadFromStorage() {
+        const saved = localStorage.getItem('todos');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            this.todoMap.clear();
+            this.ids.clear();
+            for (const todo of parsed) {
+                this.todoMap.set(todo.id, todo);
+                this.ids.add(todo.id);
+            }
+        }
     }
     addTodo(text) {
         this.saveState();
@@ -14,39 +31,47 @@ export class TodoManager {
         }
         const id = generateRandomId(this.ids);
         this.todoMap.set(id, { id, text, completed: false });
+        this.saveToStorage();
     }
     removeTodo(id) {
         this.saveState();
         this.todoMap.delete(id);
         this.ids.delete(id);
+        this.saveToStorage();
     }
     toggleTodo(id) {
         this.saveState();
         const todo = this.todoMap.get(id);
         if (todo)
             todo.completed = !todo.completed;
+        this.saveToStorage();
     }
     updateTodoText(id, newText) {
         this.saveState();
         const todo = this.todoMap.get(id);
         if (todo)
             todo.text = newText;
+        this.saveToStorage();
     }
     undo() {
         if (this.undoStack.length === 0)
             return;
         this.redoStack.push(this.snapshot());
         const prev = this.undoStack.pop();
-        if (prev)
+        if (prev) {
             this.loadSnapshot(prev);
+            this.saveToStorage();
+        }
     }
     redo() {
         if (this.redoStack.length === 0)
             return;
         this.undoStack.push(this.snapshot());
         const next = this.redoStack.pop();
-        if (next)
+        if (next) {
             this.loadSnapshot(next);
+            this.saveToStorage();
+        }
     }
     getTodos() {
         return Array.from(this.todoMap.values());
@@ -58,6 +83,7 @@ export class TodoManager {
         for (const todo of this.todoMap.values()) {
             this.toggleTodo(todo.id);
         }
+        this.saveToStorage();
     }
     hasTodo(id) {
         return this.todoMap.has(id);
@@ -68,6 +94,7 @@ export class TodoManager {
     clearAll() {
         this.todoMap.clear();
         this.ids.clear();
+        this.saveToStorage();
     }
     saveState() {
         this.undoStack.push(this.snapshot());

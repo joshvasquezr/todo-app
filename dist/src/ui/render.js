@@ -38,6 +38,13 @@ export function renderTodos(todoManager, focusedId) {
         todoItem.appendChild(leftSide);
         todoItem.appendChild(removeBtn);
         listContainer.appendChild(todoItem);
+        todoItem.animate([
+            { transform: 'scale(0.95)', opacity: 0 },
+            { transform: 'scale(1)', opacity: 1 }
+        ], {
+            duration: 200,
+            easing: 'ease-out'
+        });
     }
     if (focusedId) {
         const toFocus = document.querySelector(`.todo-item[data-id="${focusedId}"]`);

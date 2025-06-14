@@ -7,6 +7,28 @@ export class TodoManager {
     private undoStack: Todo[][] = [];
     private redoStack: Todo[][] = [];
 
+    constructor() {
+        this.loadFromStorage();
+    }
+
+    private saveToStorage(): void {
+        const todos = this.getTodos();
+        localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    private loadFromStorage(): void {
+        const saved = localStorage.getItem('todos');
+        if (saved) {
+            const parsed: Todo[] = JSON.parse(saved);
+            this.todoMap.clear();
+            this.ids.clear();
+            for (const todo of parsed) {
+                this.todoMap.set(todo.id, todo);
+                this.ids.add(todo.id);
+            }
+        }
+    }
+
     addTodo(text: string): void {
         this.saveState();
 
@@ -17,24 +39,29 @@ export class TodoManager {
 
         const id = generateRandomId(this.ids);
         this.todoMap.set(id, {id, text, completed: false});
+        this.saveToStorage();
     }
 
     removeTodo(id: number): void {
         this.saveState();
         this.todoMap.delete(id);
         this.ids.delete(id);
+        this.saveToStorage();
+
     }
 
     toggleTodo(id: number): void {
         this.saveState();
         const todo = this.todoMap.get(id);
         if (todo) todo.completed = !todo.completed;
+        this.saveToStorage();
     }
 
     updateTodoText(id: number, newText: string): void {
         this.saveState();
         const todo = this.todoMap.get(id);
         if (todo) todo.text = newText;
+        this.saveToStorage();
     }
 
     undo(): void {
@@ -42,7 +69,10 @@ export class TodoManager {
 
         this.redoStack.push(this.snapshot());
         const prev = this.undoStack.pop();
-        if (prev) this.loadSnapshot(prev);
+        if (prev) {
+            this.loadSnapshot(prev);
+            this.saveToStorage();
+        }
     }
 
     redo(): void {
@@ -50,7 +80,10 @@ export class TodoManager {
 
         this.undoStack.push(this.snapshot());
         const next = this.redoStack.pop();
-        if (next) this.loadSnapshot(next);
+        if (next) {
+            this.loadSnapshot(next);
+            this.saveToStorage();
+        }
     }
 
     getTodos(): Todo[] {
@@ -65,6 +98,7 @@ export class TodoManager {
         for (const todo of this.todoMap.values()) {
             this.toggleTodo(todo.id);
         }
+        this.saveToStorage();
     }
 
     hasTodo(id: number): boolean {
@@ -78,6 +112,7 @@ export class TodoManager {
     clearAll(): void {
         this.todoMap.clear();
         this.ids.clear();
+        this.saveToStorage();
     }
 
     private saveState(): void {
