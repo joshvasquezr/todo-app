@@ -3,19 +3,36 @@
 <head>
     <meta charset="UTF-8" />
     <title>Todo App</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-<div class="w-full max-w-md bg-white rounded-xl shadow-md p-6 space-y-4">
-    <h1 class="text-2xl font-bold text-center text-gray-800">My Todo List</h1>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center">
+
+<div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4">
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-center">My Todo List</h1>
+
+        <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="toggle-dark" class="sr-only peer">
+            <div class="relative w-11 h-6 bg-gray-300 dark:bg-gray-600 rounded-full peer-checked:bg-blue-600 transition-colors">
+                <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+            </div>
+            <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">Dark Mode</span>
+        </label>
+    </div>
 
     <div class="flex gap-2">
         <input
                 type="text"
                 id="todo-item"
-                name="todo-item"
                 placeholder="Enter a task"
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
         />
         <button
                 id="add-item"
@@ -27,14 +44,32 @@
     </div>
 
     <div class="flex gap-2 justify-between text-sm">
-        <button id="undo-btn" class="text-gray-500 hover:text-gray-700">↶ Undo</button>
-        <button id="redo-btn" class="text-gray-500 hover:text-gray-700">↷ Redo</button>
+        <button id="undo-btn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">↶ Undo</button>
+        <button id="redo-btn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">↷ Redo</button>
         <button id="clear-btn" class="text-red-500 hover:text-red-700">Clear</button>
         <button id="complete-btn" class="text-green-600 hover:text-green-800">Complete All</button>
     </div>
 
     <div class="list-container space-y-2"></div>
 </div>
+
+<script>
+    // Restore saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('toggle-dark').checked = true;
+    }
+
+    // Toggle behavior
+    window.addEventListener('DOMContentLoaded', () => {
+        const checkbox = document.getElementById('toggle-dark');
+        checkbox.addEventListener('change', () => {
+            const isDark = checkbox.checked;
+            document.documentElement.classList.toggle('dark', isDark);
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+    });
+</script>
 
 <script type="module" src="./dist/src/main.js"></script>
 </body>
